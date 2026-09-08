@@ -5,69 +5,62 @@
 
     <appender name="OpenTelemetry" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender">
         <!--
-          1. captureMdcAttributes (기본값: 미설정/비활성화)
-             - MDC(Mapped Diagnostic Context)에 저장된 키-값을 로그 속성(Attributes)으로 추출합니다.
-             - "*" : 모든 MDC 키를 캡처
-             - "userId,orderId,traceId" : 쉼표로 지정한 특정 키만 캡처
+          [운영 필수] 1. captureMdcAttributes (기본값: 미설정)
+             - MDC(Mapped Diagnostic Context)에 저장된 사용자ID, 주문번호, 트랜잭션 문맥 키-값을 로그 속성으로 추출합니다.
+             - 분산 추적 및 사용자 요청 흐름 분석에 필수적입니다.
         -->
         <captureMdcAttributes>*</captureMdcAttributes>
 
         <!--
           2. captureCodeAttributes (기본값: false)
-             - 로그가 호출된 소스 코드 위치 정보를 캡처합니다.
-             - code.filepath (파일명), code.namespace (클래스명), code.function (메서드명), code.lineno (줄번호)
-             - 디버깅 및 에러 추적 시 매우 유용합니다.
+             - 로그 호출 소스 위치(파일명, 클래스명, 메서드명, 줄번호)를 캡처합니다.
+             - 주의: 매 로그마다 스택 추적(Stack Walker)을 수행하므로 고부하 운영 환경에서는 CPU 오버헤드가 발생할 수 있어 기본값 false 권장.
         -->
-        <captureCodeAttributes>true</captureCodeAttributes>
+        <captureCodeAttributes>false</captureCodeAttributes>
 
         <!--
           3. captureKeyValuePairAttributes (기본값: false)
-             - SLF4J 2.0+ Fluent Logging API 사용 시
-               log.atInfo().addKeyValue("key", "value").log("message") 형태로 전달한 Key-Value 쌍을 캡처합니다.
+             - SLF4J 2.0+ Fluent API(log.atInfo().addKeyValue(...))의 키-값 쌍 캡처.
         -->
-        <captureKeyValuePairAttributes>true</captureKeyValuePairAttributes>
+        <captureKeyValuePairAttributes>false</captureKeyValuePairAttributes>
 
         <!--
           4. captureArguments (기본값: false)
-             - 로거 호출 시 전달된 포맷 인자(Arguments) 목록을 속성으로 캡처합니다.
-             - 예: log.info("User {} logged in from {}", userId, ip) -> 인자들을 배열/속성으로 보존
+             - 로거 호출 시 전달된 포맷 인자(Arguments) 목록을 별도 속성으로 캡처.
+             - 로그 본문(body)에 이미 포함되어 포맷팅되므로 대역폭/저장공간 절약을 위해 기본값 false 권장.
         -->
-        <captureArguments>true</captureArguments>
+        <captureArguments>false</captureArguments>
 
         <!--
           5. captureMarkerAttribute (기본값: false)
-             - SLF4J Marker (org.slf4j.Marker) 객체가 로그에 사용된 경우 마커 이름을 캡처합니다.
-             - 예: log.info(SECURITY_MARKER, "Failed login attempt")
+             - SLF4J Marker 객체 사용 시 마커 이름 캡처.
         -->
-        <captureMarkerAttribute>true</captureMarkerAttribute>
+        <captureMarkerAttribute>false</captureMarkerAttribute>
 
         <!--
           6. captureLoggerContext (기본값: false)
-             - Logback LoggerContext에 등록된 전역 컨텍스트 속성(Properties)을 캡처합니다.
+             - Logback LoggerContext 전역 속성 캡처.
         -->
-        <captureLoggerContext>true</captureLoggerContext>
+        <captureLoggerContext>false</captureLoggerContext>
 
         <!--
           7. captureLogstashAttributes (기본값: false)
-             - Logstash Logback Encoder (net.logstash.logback.marker.LogstashMarker 등) 사용 시
-               Logstash 마커 및 구조화된 필드를 캡처합니다.
+             - Logstash Logback Marker 구조화 필드 캡처.
         -->
-        <captureLogstashAttributes>true</captureLogstashAttributes>
+        <captureLogstashAttributes>false</captureLogstashAttributes>
 
         <!--
           8. captureExperimentalAttributes (기본값: false)
-             - OpenTelemetry 시맨틱 컨벤션의 실험적(Experimental) 속성들을 캡처합니다.
-             - thread.name, thread.id 등의 스레드 메타데이터가 포함됩니다.
+             - OpenTelemetry 시맨틱 컨벤션의 실험적(thread.name, thread.id 등) 속성 캡처.
         -->
-        <captureExperimentalAttributes>true</captureExperimentalAttributes>
+        <captureExperimentalAttributes>false</captureExperimentalAttributes>
 
         <!--
-          9. numLogsCapturedBeforeOtelInstall (기본값: 1000)
-             - Spring Boot 기동 극초기(OpenTelemetry 인스턴스가 install() 되기 전)에
-               발생한 로그를 버퍼링(Replay 큐)해둘 최대 개수입니다.
-             - install() 완료 후 큐에 보관된 로그를 OpenTelemetry로 일괄 재생(Replay)하여 부팅 로그 유실을 방지합니다.
+          [운영 권장] 9. numLogsCapturedBeforeOtelInstall (기본값: 1000)
+             - Spring Boot 부팅 극초기 로그를 보관해두는 버퍼 큐 크기.
+             - OpenTelemetry 연동 완료 후 부팅 로그를 일괄 전송(Replay)하여 초기 에러 유실을 방지합니다.
         -->
-        <numLogsCapturedBeforeOtelInstall>2000</numLogsCapturedBeforeOtelInstall>
+        <numLogsCapturedBeforeOtelInstall>1000</numLogsCapturedBeforeOtelInstall>
     </appender>
 
     <root level="INFO">
