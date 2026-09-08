@@ -16,7 +16,7 @@ docker compose up -d
 ```
 
 - **OpenObserve Web UI**: [http://localhost:5080](http://localhost:5080)
-- **기본 계정**: `test@aimnext.co.kr` / `Test1234!`
+- **기본 계정**: `test@test.com` / `Test1234!`
 
 ---
 
@@ -62,7 +62,7 @@ curl "http://localhost:8080/error-test?code=PAYMENT_TIMEOUT"
 
 ## 📊 OpenObserve에서 확인하기
 
-1. [http://localhost:5080](http://localhost:5080) 로그인 (`test@aimnext.co.kr` / `Test1234!`)
+1. [http://localhost:5080](http://localhost:5080) 로그인 (`test@test.com` / `Test1234!`)
 2. **Traces**: API 엔드포인트별 지연 시간, Waterfall 차트 및 Error Span 확인
 3. **Logs**: `default` 스트림에서 실시간 로그 조회 (로그 클릭 시 연관된 `trace_id`로 분산 추적 연계)
 4. **Metrics**: `http_server_requests`, `system_cpu_usage`, `jvm_*` 등 수집 지표 확인
