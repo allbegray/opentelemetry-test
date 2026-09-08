@@ -1,6 +1,7 @@
 package com.example.demo
 
 import org.slf4j.LoggerFactory
+import org.slf4j.MDC
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -28,5 +29,25 @@ class HelloController {
     fun triggerError(@RequestParam(defaultValue = "UNKNOWN") code: String): Map<String, String> {
         log.error("[ERROR-TEST] Simulated failure occurred with error code: {}", code)
         throw IllegalStateException("Simulated business error with code: $code")
+    }
+
+    @GetMapping("/mdc-test")
+    fun testMdc(
+        @RequestParam(defaultValue = "user-999") userId: String,
+        @RequestParam(defaultValue = "ROLE_ADMIN") role: String
+    ): Map<String, String> {
+        MDC.put("userId", userId)
+        MDC.put("userRole", role)
+        MDC.put("customTrackingId", "TRK-${System.currentTimeMillis()}")
+        try {
+            log.info("[MDC-TEST] Processing request with custom MDC context")
+            return mapOf(
+                "status" to "OK",
+                "userId" to userId,
+                "role" to role
+            )
+        } finally {
+            MDC.clear()
+        }
     }
 }
