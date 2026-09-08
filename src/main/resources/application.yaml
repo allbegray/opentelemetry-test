@@ -1,0 +1,80 @@
+# ==================================================================
+# 1. 공통 기본 설정 (모든 프로파일 공유)
+# ==================================================================
+spring:
+  application:
+    name: opentelemetry-test
+  profiles:
+    default: local
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+---
+# ==================================================================
+# 2. local 환경 설정 (OTLP / OpenTelemetry 비활성화)
+# ==================================================================
+spring:
+  config:
+    activate:
+      on-profile: local
+
+management:
+  opentelemetry:
+    enabled: false
+  otlp:
+    metrics:
+      export:
+        enabled: false
+  tracing:
+    export:
+      enabled: false
+
+---
+# ==================================================================
+# 3. dev 환경 설정 (OpenObserve OTLP 연동 활성화)
+# ==================================================================
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+management:
+  tracing:
+    export:
+      enabled: true
+    sampling:
+      probability: 1.0
+  opentelemetry:
+    enabled: true
+    resource-attributes:
+      service.name: ${spring.application.name:demo}
+      service.version: 0.0.1-SNAPSHOT
+      deployment.environment: dev
+    tracing:
+      export:
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:5080/api/default/v1/traces}
+          headers:
+            Authorization: "${OTEL_AUTH_HEADER:Basic dGVzdEBhaW1uZXh0LmNvLmtyOlRlc3QxMjM0IQ==}"
+    logging:
+      export:
+        schedule-delay: 1s
+        otlp:
+          endpoint: ${OTEL_EXPORTER_OTLP_LOGS_ENDPOINT:http://localhost:5080/api/default/v1/logs}
+          headers:
+            Authorization: "${OTEL_AUTH_HEADER:Basic dGVzdEBhaW1uZXh0LmNvLmtyOlRlc3QxMjM0IQ==}"
+  otlp:
+    metrics:
+      export:
+        enabled: true
+        url: ${OTEL_EXPORTER_OTLP_METRICS_ENDPOINT:http://localhost:5080/api/default/v1/metrics}
+        headers:
+          Authorization: "${OTEL_AUTH_HEADER:Basic dGVzdEBhaW1uZXh0LmNvLmtyOlRlc3QxMjM0IQ==}"
+        step: 10s
